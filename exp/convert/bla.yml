@@ -1,0 +1,36 @@
+http:
+  routers:
+    routerTest:
+      entrypoints:
+        - test
+      middlewares:
+        - test-headers
+      service: test
+      rule: "Host(`127.0.0.1`)"
+  middlewares:
+    test-headers:
+      headers:
+        accesscontrolallowmethods: [GET, PUT, DELETE, POST, OPTIONS]
+        accesscontrolalloworigin: "*"
+        accesscontrolallowheaders:
+          - keep-alive
+          - user-agent
+          - cache-control
+          - content-type
+          - content-transfer-encoding
+          - x-accept-content-transfer-encoding
+          - x-accept-response-streaming
+          - x-user-agent
+          - x-grpc-web
+          - grpc-timeout
+          - authorization
+        accesscontrolexposeheaders:
+          - grpc-status
+          - grpc-message
+        accesscontrolmaxage: 1728000
+        addvaryheader: true
+  services:
+    test:
+      loadbalancer:
+        servers:
+          - url: "http://localhost"
