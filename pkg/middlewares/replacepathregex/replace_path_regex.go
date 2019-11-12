@@ -19,7 +19,7 @@ const (
 	typeName = "ReplacePathRegex"
 )
 
-// ReplacePathRegex is a middleware used to replace the path of a URL request with a regular expression.
+// replacePathRegex is a middleware used to replace the path of a URL request with a regular expression.
 type replacePathRegex struct {
 	next        http.Handler
 	regexp      *regexp.Regexp
@@ -44,15 +44,20 @@ func New(ctx context.Context, next http.Handler, config dynamic.ReplacePathRegex
 	}, nil
 }
 
-func (rp *replacePathRegex) GetTracingInformation() (string, ext.SpanKindEnum) {
-	return rp.name, tracing.SpanKindNoneEnum
+func (r *replacePathRegex) GetTracingInformation() (string, ext.SpanKindEnum) {
+	return r.name, tracing.SpanKindNoneEnum
 }
 
-func (rp *replacePathRegex) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
-	if rp.regexp != nil && len(rp.replacement) > 0 && rp.regexp.MatchString(req.URL.Path) {
-		req.Header.Add(replacepath.ReplacedPathHeader, req.URL.Path)
-		req.URL.Path = rp.regexp.ReplaceAllString(req.URL.Path, rp.replacement)
-		req.RequestURI = req.URL.RequestURI()
+func (r *replacePathRegex) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if r.regexp == nil || !r.regexp.MatchString(req.URL.Path) {
+		r.next.ServeHTTP(rw, req)
+		return
 	}
-	rp.next.ServeHTTP(rw, req)
+
+	req.Header.Add(replacepath.ReplacedPathHeader, req.URL.Path)
+
+	req.URL.Path = r.regexp.ReplaceAllString(req.URL.Path, r.replacement)
+	req.RequestURI = req.URL.RequestURI()
+
+	r.next.ServeHTTP(rw, req)
 }

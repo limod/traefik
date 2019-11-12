@@ -364,6 +364,16 @@ type ReplacePathQueryRegex struct {
 
 // +k8s:deepcopy-gen=true
 
+// ReplaceQueryNewRegex holds the ReplaceQueryRegex configuration.
+type ReplaceQueryNewRegex struct {
+	MatchOn     string `json:"matchOn,omitempty" toml:"matchOn,omitempty" yaml:"matchOn,omitempty"`
+	Regex       string `json:"regex,omitempty" toml:"regex,omitempty" yaml:"regex,omitempty"`
+	ReplaceOn   string `json:"replaceOn,omitempty" toml:"replaceOn,omitempty" yaml:"replaceOn,omitempty"`
+	Replacement string `json:"replacement,omitempty" toml:"replacement,omitempty" yaml:"replacement,omitempty"`
+}
+
+// +k8s:deepcopy-gen=true
+
 // Retry holds the retry configuration.
 type Retry struct {
 	Attempts int `json:"attempts,omitempty" toml:"attempts,omitempty" yaml:"attempts,omitempty" export:"true"`
