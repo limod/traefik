@@ -130,6 +130,7 @@ func (p *Provider) createClient() (client.APIClient, error) {
 
 		httpClient = &http.Client{
 			Transport: tr,
+			Timeout:   10 * time.Second,
 		}
 	}
 

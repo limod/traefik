@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/containous/traefik/v2/pkg/config/dynamic"
 	"github.com/containous/traefik/v2/pkg/log"
@@ -64,11 +65,12 @@ func (fa *forwardAuth) GetTracingInformation() (string, ext.SpanKindEnum) {
 func (fa *forwardAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	logger := log.FromContext(middlewares.GetLoggerCtx(req.Context(), fa.name, forwardedTypeName))
 
-	// Ensure our request client does not follow redirects
 	httpClient := http.Client{
+		// Ensure the client's request does not follow redirects
 		CheckRedirect: func(r *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
+		Timeout: 10 * time.Second,
 	}
 
 	if fa.tlsConfig != nil {
@@ -88,8 +90,7 @@ func (fa *forwardAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Ensure tracing headers are in the request before we copy the headers to the
-	// forwardReq.
+	// Ensure tracing headers are in the request before we copy the headers to the forwardReq.
 	tracing.InjectRequestHeaders(req)
 
 	writeHeader(req, forwardReq, fa.trustForwardHeader)
@@ -115,8 +116,7 @@ func (fa *forwardAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 	defer forwardResponse.Body.Close()
 
-	// Pass the forward response's body and selected headers if it
-	// didn't return a response within the range of [200, 300).
+	// Pass the forward response's body and selected headers if it didn't return a response within the range of [200, 300).
 	if forwardResponse.StatusCode < http.StatusOK || forwardResponse.StatusCode >= http.StatusMultipleChoices {
 		logger.Debugf("Remote error %s. StatusCode: %d", fa.address, forwardResponse.StatusCode)
 
